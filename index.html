@@ -293,7 +293,7 @@ const basePrice=p.salePrice||p.price;const sellerPrice=p.price;let buyerCost=bas
 const c=coupons.find(x=>x.code===pendingCouponCode&&!x.used);if(c){buyerCost=Math.max(1,basePrice-c.discount);c.used=true;toast(`クーポン適用！-${c.discount}PT`,'success');}
 pendingCouponCode='';}
 if(currentUser.pt<buyerCost&&!currentUser.isAdmin){toast(`PT残高が不足しています（必要:${buyerCost}PT）`,'error');closeModal('conf-modal');return;}
-if(!currentUser.isAdmin)currentUser.pt-=buyerCost;const sel=users.find(u=>u.id===p.sellerId);if(sel&&!currentUser.isAdmin){sel.pt+=sellerPrice;if(!sel.sold)sel.sold=[];sel.sold.push(p.id);}
+if(!currentUser.isAdmin){currentUser.pt=Math.max(0,currentUser.pt-buyerCost);updatePT();saveLocal();}const sel=users.find(u=>u.id===p.sellerId);if(sel&&!currentUser.isAdmin){sel.pt+=sellerPrice;if(!sel.sold)sel.sold=[];sel.sold.push(p.id);}
 else if(sel){if(!sel.sold)sel.sold=[];sel.sold.push(p.id);}
 p.sold=true;p.buyerId=currentUser.id;if(p.stock!==undefined)p.stock=Math.max(0,p.stock-1);if(p.stock>0)p.sold=false;if(!currentUser.purchases)currentUser.purchases=[];currentUser.purchases.push(p.id);const timeStr=new Date().toLocaleString('ja');addTx(currentUser.id,{type:'buy',name:p.name,pt:currentUser.isAdmin?0:-buyerCost,imgData:p.imgData,cat:p.category,time:timeStr});if(sel&&!currentUser.isAdmin)addTx(sel.id,{type:'sell',name:p.name,pt:+sellerPrice,imgData:p.imgData,cat:p.category,time:timeStr});if(!currentUser.isAdmin)addNotif(p.sellerId,`💰 「${p.name}」が購入されました！（あなたの受取:${sellerPrice}PT）`);closeModal('conf-modal');pendingBuyId=null;if(p.afterMsg){
 setTimeout(()=>{
